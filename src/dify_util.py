@@ -2,7 +2,7 @@ import requests
 from flask import Flask, request, jsonify
 
 DIFY_API_KEY = 'app-1HTsxnKAIvSP70c1GKVJhweW'
-DIFY_API_URL = 'http://110.40.167.8/v1/chat-messages'
+DIFY_API_URL = 'http://110.40.167.8:8088/v1/chat-messages'
 
 
 def call_dify_api(query):
@@ -24,7 +24,10 @@ def call_dify_api(query):
     response = requests.post(DIFY_API_URL, json=payload, headers=headers)
 
     if response.status_code == 200:
-        return response.json()
+        return response.json()['answer']
     else:
         print(f"调用 Dify API 失败: {response.status_code}, {response.text}")
         return None
+
+if __name__ == '__main__':
+    print(call_dify_api('你是什么大模型'))
