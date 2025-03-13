@@ -1,15 +1,15 @@
-from flask import Flask, request, jsonify
 import requests
-import hmac
-import hashlib
+from flask import Flask, request, jsonify
+import dify_util
 
 app = Flask(__name__)
 
 # 你的 GitLab Webhook Secret Token
 WEBHOOK_SECRET = 'dXMLYnDkuTNPxUkFaPQUCPQtdymUFDJfniRIrOGpvpJ'
-gitlab_access_token = 'glpat-2g7XKkWycSjiH7R2rLiK'
+GITLAB_ACCESS_TOKEN = 'glpat-WezU_THXFzFB2Js76jrK'
 
 
+# host.docker.internal:6000/webhook
 @app.route('/webhook', methods=['POST'])
 def webhook():
     # 验证 Webhook 请求
@@ -36,11 +36,11 @@ def verify_signature(data, signature):
 def handle_merge_request(data):
     # 处理 Merge Request 信息
     merge_request = data['object_attributes']
-    #项目标识
+    #  项目标识
     project_id = merge_request['target_project_id']
-    #merge request id
+    # merge request id
     merge_request_id = merge_request['id']
-    #原分支
+    # 原分支
     source_branch = merge_request['source_branch']
     # 目标分支
     target_branch = merge_request['target_branch']
@@ -51,7 +51,7 @@ def handle_merge_request(data):
 
     # 获取变更的文件列表
     changes_url = f'http://127.0.0.1:8200/api/v4/projects/{project_id}/merge_requests/{merge_request_id}/changes'
-    headers = {'PRIVATE-TOKEN': gitlab_access_token}
+    headers = {'PRIVATE-TOKEN': GITLAB_ACCESS_TOKEN}
     response = requests.get(changes_url, headers=headers)
     changes = response.json()
 
@@ -60,9 +60,9 @@ def handle_merge_request(data):
 
     file_changes = extract_changes(changed_files)
     file_changes_markdown = generate_markdown(file_changes)
-    print(file_changes_markdown)
+
     # 调用 AI Review 功能
-    # ai_review(title, description, changed_files)
+    print(ai_review(file_changes_markdown))
 
 
 def extract_changes(changes):
@@ -108,6 +108,10 @@ def generate_markdown(file_changes) -> str:
         markdown_content += "\n```\n\n"
 
     return markdown_content
+
+
+def ai_review(file_changes_markdown: str) -> str:
+    return dify_util.call_dify_api(file_changes_markdown)
 
 
 if __name__ == '__main__':
