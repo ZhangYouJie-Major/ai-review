@@ -61,8 +61,11 @@ def handle_merge_request(data):
     file_changes = extract_changes(changed_files)
     file_changes_markdown = generate_markdown(file_changes)
 
+    comment = ai_review(file_changes_markdown)
     # 调用 AI Review 功能
-    print(ai_review(file_changes_markdown))
+    print(comment)
+
+    add_merge_request_comment(project_id, merge_request_id, comment)
 
 
 def extract_changes(changes):
@@ -112,6 +115,34 @@ def generate_markdown(file_changes) -> str:
 
 def ai_review(file_changes_markdown: str) -> str:
     return dify_util.call_dify_api(file_changes_markdown)
+
+
+def add_merge_request_comment(project_id, merge_request_iid, comment):
+    """
+    向 GitLab Merge Request 添加评论
+    """
+    # GitLab API 地址
+    gitlab_api_url = f"https://gitlab.com/api/v4/projects/{project_id}/merge_requests/{merge_request_iid}/notes"
+
+    # 请求头
+    headers = {
+        "PRIVATE-TOKEN": GITLAB_ACCESS_TOKEN,  # 替换为你的 GitLab Access Token
+        "Content-Type": "application/json"
+    }
+
+    # 请求体
+    payload = {
+        "body": comment
+    }
+
+    # 发送 POST 请求
+    response = requests.post(gitlab_api_url, json=payload, headers=headers)
+
+    # 检查响应状态
+    if response.status_code == 201:
+        print("评论添加成功！")
+    else:
+        print(f"评论添加失败: {response.status_code}, {response.text}")
 
 
 if __name__ == '__main__':
