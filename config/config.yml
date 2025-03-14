@@ -1,0 +1,11 @@
+webhook:
+  secret: 'dXMLYnDkuTNPxUkFaPQUCPQtdymUFDJfniRIrOGpvpJ'
+  port: 6000
+
+gitlab:
+  access_token: 'glpat-WezU_THXFzFB2Js76jrK'
+  api_url: 'http://127.0.0.1:8200/api/v4'
+
+dify:
+  api_key: 'app-1HTsxnKAIvSP70c1GKVJhweW'
+  api_url: 'http://110.40.167.8/v1/chat-messages'
