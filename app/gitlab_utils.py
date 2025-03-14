@@ -1,5 +1,6 @@
 import requests
 from flask import current_app
+from .dify_utils import ai_review
 
 
 def handle_merge_request(data):
