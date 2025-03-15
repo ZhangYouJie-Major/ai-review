@@ -8,4 +8,4 @@ gitlab:
 
 dify:
   api_key: 'app-1HTsxnKAIvSP70c1GKVJhweW'
-  api_url: 'http://110.40.167.8:8088/v1/chat-messages'
+  api_url: 'http://x.x.x.x:8088/v1/chat-messages'
