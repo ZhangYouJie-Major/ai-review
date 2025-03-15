@@ -3,9 +3,9 @@ webhook:
   port: 6000
 
 gitlab:
-  access_token: 'glpat-WezU_THXFzFB2Js76jrK'
-  api_url: 'http://127.0.0.1:8200/api/v4'
+  access_token: 'glpat-j8xsvBpWC_jJ7GaL2R-h'
+  api_url: 'http://127.0.0.1:8200'
 
 dify:
   api_key: 'app-1HTsxnKAIvSP70c1GKVJhweW'
-  api_url: 'http://110.40.167.8/v1/chat-messages'
+  api_url: 'http://110.40.167.8:8088/v1/chat-messages'

@@ -1,28 +1,74 @@
 import requests
 from flask import current_app
 from .dify_utils import ai_review
+import gitlab
+
+
+def get_gitlab_client():
+    """
+    初始化并返回 GitLab 客户端
+    """
+    return gitlab.Gitlab(
+        url=current_app.config['GITLAB_API_URL'],
+        private_token=current_app.config['GITLAB_ACCESS_TOKEN']
+    )
+
+
+def get_merge_request_changes(project_id, merge_request_id):
+    """
+    获取 Merge Request 的变更文件
+    """
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    merge_request = project.mergerequests.get(merge_request_id)
+    changes = merge_request.changes()
+    return changes['changes']
+
+
+def add_merge_request_comment(project_id, merge_request_id, comment):
+    """
+    向 Merge Request 添加评论
+    """
+    if not comment:
+        raise ValueError("Comment cannot be empty")
+
+    if isinstance(comment, dict):
+        comment = str(comment)
+
+    if len(comment) > 1000000:
+        comment = comment[:1000000]  # 截断过长的评论
+
+    gl = get_gitlab_client()
+    project = gl.projects.get(project_id)
+    merge_request = project.mergerequests.get(merge_request_id)
+    merge_request.notes.create({'body': comment})
+    print("评论添加成功！")
 
 
 def handle_merge_request(data):
     merge_request = data['object_attributes']
     project_id = merge_request['target_project_id']
-    merge_request_id = merge_request['id']
+    merge_request_id = merge_request['iid']  # 注意：GitLab API 使用的是 iid 而不是 id
     source_branch = merge_request['source_branch']
     target_branch = merge_request['target_branch']
     title = merge_request['title']
     description = merge_request['description']
 
-    changes_url = f"{current_app.config['GITLAB_API_URL']}/projects/{project_id}/merge_requests/{merge_request_id}/changes"
-    headers = {'PRIVATE-TOKEN': current_app.config['GITLAB_ACCESS_TOKEN']}
-    response = requests.get(changes_url, headers=headers)
-    changes = response.json()
+    # 检查 Merge Request 的状态和操作
+    if merge_request['state'] != 'opened' or merge_request['action'] not in ['open', 'update', 'reopen']:
+        print(f"Ignoring Merge Request with state: {merge_request['state']}, action: {merge_request['action']}")
+        return
 
-    changed_files = changes['changes']
-    file_changes = extract_changes(changed_files)
+    # 获取变更的文件列表
+    changes = get_merge_request_changes(project_id, merge_request_id)
+    file_changes = extract_changes(changes)
     file_changes_markdown = generate_markdown(file_changes)
 
+    # 调用 AI 审查
     comment = ai_review(file_changes_markdown)
-    add_merge_request_comment(project_id, merge_request_id, comment)
+
+    # 添加评论
+    add_merge_request_comment(project_id, merge_request_id, comment['answer'])
 
 
 def extract_changes(changes):
@@ -55,18 +101,3 @@ def generate_markdown(file_changes) -> str:
         markdown_content += diff_content
         markdown_content += "\n```\n\n"
     return markdown_content
-
-
-def add_merge_request_comment(project_id, merge_request_iid, comment):
-    gitlab_api_url = f"{current_app.config['GITLAB_API_URL']}/projects/{project_id}/merge_requests/{merge_request_iid}/notes"
-    headers = {
-        "PRIVATE-TOKEN": current_app.config['GITLAB_ACCESS_TOKEN'],
-        "Content-Type": "application/json"
-    }
-    payload = {"body": comment}
-    response = requests.post(gitlab_api_url, json=payload, headers=headers)
-
-    if response.status_code == 201:
-        print("评论添加成功！")
-    else:
-        print(f"评论添加失败: {response.status_code}, {response.text}")

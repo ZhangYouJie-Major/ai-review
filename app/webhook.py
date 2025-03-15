@@ -4,6 +4,7 @@ from .utils import verify_signature
 
 webhook_bp = Blueprint('webhook', __name__)
 
+
 @webhook_bp.route('/webhook', methods=['POST'])
 def webhook():
     signature = request.headers.get('X-Gitlab-Token')

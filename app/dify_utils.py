@@ -2,7 +2,7 @@ import requests
 from flask import current_app
 
 
-def ai_review(file_changes_markdown: str) -> str:
+def ai_review(file_changes_markdown: str):
     headers = {
         "Authorization": f"Bearer {current_app.config['DIFY_API_KEY']}",
         "Content-Type": "application/json"
