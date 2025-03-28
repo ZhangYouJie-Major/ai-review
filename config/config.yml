@@ -12,8 +12,13 @@ dify:
 
 deepseek:
   base_url: 'https://api.deepseek.com'
-  token: ''
+  token: 'sk-eb64ca97ec8248418ccbe309d23dee12'
   model: "deepseek-chat"
+
+silicon_flow:
+  base_url: 'https://api.siliconflow.cn'
+  token: 'sk-jzbbqfdbnigbqofyuukrwlwaflogixndnjjvsdtljaxwedvt'
+  model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
 paths:
   input_dir: 'in'

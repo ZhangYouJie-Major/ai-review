@@ -11,10 +11,10 @@ class CodeReviewTool:
 
         # 初始化 OpenAI 客户端
         self.client = OpenAI(
-            api_key=self.config['deepseek']['token'],
-            base_url=self.config['deepseek']['base_url']
+            api_key=self.config['silicon_flow']['token'],
+            base_url=self.config['silicon_flow']['base_url']
         )
-        self.model = self.config['deepseek']['model']
+        self.model = self.config['silicon_flow']['model']
 
     def parse_patch_file(self, filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
@@ -24,8 +24,14 @@ class CodeReviewTool:
 
         segments = content.split('Index:')
         segments = [segment.strip() for segment in segments if segment.strip()]
-        for segment in segments:
+
+        print(f'拆分文件判断数量:{len(segments)}')
+
+        for index in range(1, len(segments)):
+            print(f'第{index}调用api review')
+            segment = segments[index]
             response += '\n' + self.call_ds_api(segment)
+
         return response
 
     def call_ds_api(self, context: str) -> str:
@@ -35,7 +41,7 @@ class CodeReviewTool:
             在你的回应中请记住下面规则：
             ```
             1. 返回的问题类型必须要在指定的类型范围内，任何情况都不得超出。
-            2. 代码的格式是统一差异格式，你只需要把删除的行忽略，只关注修改完的行。
+            2. 代码的格式是统一差异格式（Unified Diff Format），你只需要把删除的行忽略，只关注修改完的行。
             3. 如果用户的修改没有问题，则不返回任何内容。
             4. 不要擅自在结尾写任何形式的总结评论或概括或提要。
             5. 必须给出问题原码的范围。
@@ -83,7 +89,7 @@ class CodeReviewTool:
         for filename in os.listdir(input_dir):
             if filename.endswith('.txt'):
                 input_filepath = os.path.join(input_dir, filename)
-                output_filepath = os.path.join(output_dir, f'reviewed_{filename}')
+                output_filepath = os.path.join(output_dir, f'reviewed_{filename.replace("txt", "md")}')
 
                 review_result = self.parse_patch_file(input_filepath)
                 with open(output_filepath, 'w', encoding='utf-8') as f:
