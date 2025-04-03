@@ -11,10 +11,10 @@ class CodeReviewTool:
 
         # 初始化 OpenAI 客户端
         self.client = OpenAI(
-            api_key=self.config['silicon_flow']['token'],
-            base_url=self.config['silicon_flow']['base_url']
+            api_key=self.config['deepseek']['token'],
+            base_url=self.config['deepseek']['base_url']
         )
-        self.model = self.config['silicon_flow']['model']
+        self.model = self.config['deepseek']['model']
 
     def parse_patch_file(self, filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
